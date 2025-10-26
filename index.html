@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Analytics Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(30, 30, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .video-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .video-card {
+            background: rgba(30, 30, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #f0f0f0;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            color: #666;
+            font-size: 14px;
+        }
+
+        .video-card iframe {
+            aspect-ratio: 16/9;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: rgba(30, 30, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .icon-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .icon-pink { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .icon-cyan { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .icon-orange { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+        .metric-info {
+            flex: 1;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .metric-subtitle {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: rgba(30, 30, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-header {
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f0f0f0;
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            transition: transform 0.2s;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+        }
+
+        .queue-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .queue-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .queue-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .queue-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .video-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .queue-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <div class="logo">R</div>
+                <h1>Retail Analytics Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <span id="lastUpdate">Last updated: 11:00:16 PM</span>
+                <button class="refresh-btn" onclick="refreshData()">
+                    <span>↻</span> Refresh
+                </button>
+            </div>
+        </header>
+
+        <div class="video-section">
+            <div class="video-card">
+                <h3>Input Stream</h3>
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/ap5K1WY1Eg4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 12px;"></iframe>
+            </div>
+            <div class="video-card">
+                <h3>Processed Stream</h3>
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/jnjE-9i3AT8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 12px;"></iframe>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon icon-purple">👥</div>
+                <div class="metric-info">
+                    <div class="metric-label">Total Visitors</div>
+                    <div class="metric-value" id="totalVisitors">215</div>
+                    <div class="metric-subtitle">Today</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-pink">⏱️</div>
+                <div class="metric-info">
+                    <div class="metric-label">Avg Dwell Time</div>
+                    <div class="metric-value" id="dwellTime">8.3 <span style="font-size: 16px;">min</span></div>
+                    <div class="metric-subtitle">Minutes</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-cyan">📊</div>
+                <div class="metric-info">
+                    <div class="metric-label">Peak Occupancy</div>
+                    <div class="metric-value" id="peakOccupancy">42</div>
+                    <div class="metric-subtitle">at 14:30</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-orange">🛡️</div>
+                <div class="metric-info">
+                    <div class="metric-label">Avg Occupancy</div>
+                    <div class="metric-value" id="avgOccupancy">18.5</div>
+                    <div class="metric-subtitle">People in store</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Hourly Footfall</div>
+                    <div class="chart-subtitle">Walk-ins per hour</div>
+                </div>
+                <canvas id="footfallChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Time Series - Active People</div>
+                    <div class="chart-subtitle">Last 2 hours</div>
+                </div>
+                <canvas id="timeSeriesChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Store Movement Heatmap</div>
+                    <div class="chart-subtitle">Density visualization</div>
+                </div>
+                <div class="heatmap-grid" id="heatmap"></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">Queue & Billing Metrics</div>
+                    <div class="chart-subtitle">Real-time queue status</div>
+                </div>
+                <div class="queue-metrics">
+                    <div class="queue-item">
+                        <div class="queue-label">Active Counters</div>
+                        <div class="queue-value">4</div>
+                    </div>
+                    <div class="queue-item">
+                        <div class="queue-label">Avg Wait Time</div>
+                        <div class="queue-value">3.2m</div>
+                    </div>
+                    <div class="queue-item">
+                        <div class="queue-label">In Queue</div>
+                        <div class="queue-value">12</div>
+                    </div>
+                </div>
+                <canvas id="queueChart" style="margin-top: 24px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('lastUpdate').textContent = `Last updated: ${timeStr}`;
+        }
+
+        // Refresh data
+        function refreshData() {
+            updateTime();
+            document.getElementById('totalVisitors').textContent = Math.floor(Math.random() * 100) + 180;
+            document.getElementById('dwellTime').innerHTML = (Math.random() * 5 + 5).toFixed(1) + ' <span style="font-size: 16px;">min</span>';
+            document.getElementById('peakOccupancy').textContent = Math.floor(Math.random() * 20) + 35;
+            document.getElementById('avgOccupancy').textContent = (Math.random() * 10 + 12).toFixed(1);
+        }
+
+        // Chart configurations
+        Chart.defaults.color = '#999';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+        // Hourly Footfall Chart
+        const footfallCtx = document.getElementById('footfallChart').getContext('2d');
+        new Chart(footfallCtx, {
+            type: 'bar',
+            data: {
+                labels: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+                datasets: [{
+                    label: 'Walk-ins',
+                    data: [5, 12, 18, 25, 32, 28, 35, 22, 15, 8],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Time Series Chart
+        const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
+        const timeLabels = [];
+        for (let i = 0; i <= 60; i += 5) {
+            const hour = 9 + Math.floor(i / 60);
+            const min = i % 60;
+            timeLabels.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
+        }
+        
+        new Chart(timeSeriesCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Active People',
+                    data: [15, 18, 22, 25, 26, 27, 28, 25, 22, 20, 19, 13, 12],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Queue Chart
+        const queueCtx = document.getElementById('queueChart').getContext('2d');
+        new Chart(queueCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Counter 1', 'Counter 2', 'Counter 3', 'Counter 4'],
+                datasets: [{
+                    data: [4, 3, 2, 3],
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(240, 147, 251, 0.8)',
+                        'rgba(79, 172, 254, 0.8)',
+                        'rgba(250, 112, 154, 0.8)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15, font: { size: 12 } }
+                    }
+                }
+            }
+        });
+
+        // Heatmap
+        const heatmapEl = document.getElementById('heatmap');
+        const colors = ['rgba(102, 126, 234, 0.2)', 'rgba(102, 126, 234, 0.4)', 'rgba(102, 126, 234, 0.6)', 'rgba(102, 126, 234, 0.8)', 'rgba(102, 126, 234, 1)'];
+        
+        for (let i = 0; i < 72; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            const intensity = Math.floor(Math.random() * colors.length);
+            cell.style.backgroundColor = colors[intensity];
+            heatmapEl.appendChild(cell);
+        }
+
+        // Initial time update
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
